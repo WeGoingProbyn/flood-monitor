@@ -96,12 +96,14 @@ class Monitor:
     Updates the start and end time strings being used to request data,
     always takes a period of the last 24 hours
 
-    Does not return, updates object attributes inplace
+    Does not return, updates end_time and start_time inplace
     """
     # collect time for time series data
     end = dt.datetime.now()
     start = end - dt.timedelta(hours=24)
-    # API expects time bound requests to have Year-Month-DayTHour:Minute:SecondZ format
+
+    # API expects time bound requests to have 
+    # Year-Month-DayTHour:Minute:SecondZ format
     self.end_time = end.strftime("%Y-%m-%dT%H:%M:%SZ")
     self.start_time = start.strftime("%Y-%m-%dT%H:%M:%SZ")
 

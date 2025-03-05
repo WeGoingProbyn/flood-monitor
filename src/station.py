@@ -1,6 +1,7 @@
 import requests
-import src.errors as err
+import pandas as pd
 from enum import Enum
+import src.errors as err
 
 class Measure(Enum):
   Flow = 0
@@ -35,14 +36,12 @@ def measure_from_string(ty: str) -> err.Result:
       return err.Ok(Measure.Flow)
     case "wind":
       return err.Ok(Measure.Wind)
-    case "tidal":
+    case "tidal level":
       return err.Ok(Measure.Tidal)
     case "stage":
       return err.Ok(Measure.Stage)
     case "downstream stage":
       return err.Ok(Measure.Downstage)
-    case "tidal":
-      return err.Ok(Measure.Tidal)
     case "groundwater":
       return err.Ok(Measure.Groundwater)
     case _:
@@ -58,8 +57,8 @@ class Station:
   station_reference: str
     the unique identifier used to request data for this station
 
-  available_measires: [Measure]
-    The array of available measurements types when querying measurements this station
+  available_measires: [(Measure, str)]
+    The array of available (measurement, units) types when querying measurements this station
 
   Methods
   -------
@@ -143,13 +142,15 @@ class Station:
         )
         continue
 
+      # Extract the unit type
+      units = measure["unit"].rsplit("#", 1)[-1]
       # Find the type of measurement being given
       if measure["parameter"] == "level":
         # the level parameter can come from different types of measurements
         # need to use the qualifier to distinguish between them 
          match measure_from_string(measure["qualifier"]):
           case err.Ok(ty):
-            self.availabe_measures.append(ty)
+            self.availabe_measures.append((ty, units))
           case err.Err(error):
             print(error.why())
             print(f"Could not convert \"{measure["qualifier"]}\" into Measure enum type")       
@@ -157,26 +158,58 @@ class Station:
         # Otherwise the parameter can be used to determine the measurement type
         match measure_from_string(measure["parameter"]):
           case err.Ok(ty):
-            self.availabe_measures.append(ty)
+            self.availabe_measures.append((ty, units))
           case err.Err(error):
             print(error.why())
             print(f"Could not convert \"{measure["parameter"]}\" into Measure enum type")
     return err.Ok(0)
 
 
-  # def request_measure(self, measure: Measure, base_url: str) -> err.Result:
-  #   """
-  #   Parameters
-  #   ----------
-  #   measure: Measure
-  #     The measure to request from the flood-monitoring API
-  #
-  #   base_url: str
-  #     The base url used for requesting data from the flood-monitoring
-  #     API, should be passed from an instance of Monitor class for consistency
-  #
-  #   Returns
-  #   -------
-  #
-  #   """
+  def request_measure(self, measure: Measure, start_time: str, base_url: str) -> err.Result:
+    """
+    Parameters
+    ----------
+    measure: Measure
+      The measure to request from the flood-monitoring API
+
+    start_time: str
+      The formatted start time held by a Monitor instance
+
+    base_url: str
+      The base url used for requesting data from the flood-monitoring
+      API, should be passed from an instance of Monitor class for consistency
+
+    Returns
+    -------
+
+    """
+    ext = None
+    match measure:
+      case Measure.Flow:
+        ext = f"?parameter=flow&since={start_time}"
+      case Measure.Wind:
+        ext = f"?parameter=wind&since={start_time}"
+      case Measure.Tidal:
+        ext = f"?parameter=level&qualifier=Tidal Level&since={start_time}"
+      case Measure.Stage:
+        ext = f"?parameter=level&qualifier=Stage&since={start_time}"
+      case Measure.Downstage:
+        ext = f"?parameter=level&qualifier=Downstream Stage&since={start_time}"
+      case Measure.Groundwater:
+        ext = f"?parameter=level&qualifier=Groundwater&since={start_time}"
+      case Measure.Temperature:
+        ext = f"?parameter=temperature&since={start_time}"
+
+    response = requests.get(f"{base_url}/id/stations/{self.station_reference}/readings{ext}")
+
+    if response.status_code != 200:
+      return err.Err(err.MonitorError.ApiReject)
+
+    data = response.json()
+    if "items" not in data:
+      return err.Err(err.MonitorError.BadReturn)
+
+    df = pd.DataFrame.from_dict(data["items"])
+    return err.Ok(df[["dateTime", "value"]])
+
 

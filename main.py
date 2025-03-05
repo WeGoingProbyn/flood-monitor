@@ -14,12 +14,19 @@ def main():
   )
   station = sta.Station(monitor.base_url, option)
 
-  for _,(measure, _) in enumerate(station.availabe_measures):
+  for (measure, unit) in station.availabe_measures:
     match station.request_measure(measure, monitor.start_time, monitor.base_url):
       case err.Err(error):
         print(error.why())
       case err.Ok(df):
-        st.line_chart(data=df, x="dateTime", y="value")
+        st.line_chart(
+          data=df, 
+          x="dateTime", 
+          y="value", 
+          x_label="date and time",
+          y_label=f"{measure.to_string()} ({unit})"
+        )
+        st.dataframe(df)
 
 if __name__ == "__main__":
   main()

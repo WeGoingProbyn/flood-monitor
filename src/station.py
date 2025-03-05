@@ -11,6 +11,43 @@ class Measure(Enum):
   Groundwater = 5
   Temperature = 6
 
+  def to_string(self) -> str:
+    match self:
+      case Measure.Flow:
+        return "flow"
+      case Measure.Wind:
+        return "wind"
+      case Measure.Tidal:
+        return "tidal level"
+      case Measure.Stage:
+        return "stage level"
+      case Measure.Downstage:
+        return "downstream stage level"
+      case Measure.Groundwater:
+        return "groundwater level"
+      case Measure.Temperature:
+        return "temperature"
+
+def measure_from_string(ty: str) -> err.Result:
+  string = ty.lower()
+  match string:
+    case "flow":
+      return err.Ok(Measure.Flow)
+    case "wind":
+      return err.Ok(Measure.Wind)
+    case "tidal":
+      return err.Ok(Measure.Tidal)
+    case "stage":
+      return err.Ok(Measure.Stage)
+    case "downstream stage":
+      return err.Ok(Measure.Downstage)
+    case "tidal":
+      return err.Ok(Measure.Tidal)
+    case "groundwater":
+      return err.Ok(Measure.Groundwater)
+    case _:
+      return err.Err(err.MonitorError.BadStringToEnum)
+
 class Station:
   """
   A class to contain all of the information returned when
@@ -107,41 +144,23 @@ class Station:
         continue
 
       # Find the type of measurement being given
-      match measure["parameter"]:
-        case "flow":
-          self.availabe_measures.append(Measure.Flow)
-        case "wind":
-          self.availabe_measures.append(Measure.Wind)
-        case "temperature":
-          self.availabe_measures.append(Measure.Temperature)
-        case "level":
-          if "qualifier" not in measure:
-            print(
-              (f"Level parameter found for station: {self.station_reference}, " 
-                "but no qualifier found to distinguish level type, skipping")
-            )
-            continue
-
-          # Need to find the type of level being measured from
-          # the qualifier field as 1 station may provide more than 1 type of level
-          match measure["qualifier"]:
-            case "Stage":
-              self.availabe_measures.append(Measure.Stage)
-            case "Downstream Stage":
-              self.availabe_measures.append(Measure.Downstage)
-            case "Groundwater":
-              self.availabe_measures.append(Measure.Groundwater)
-            case "Tidal":
-              self.availabe_measures.append(Measure.Tidal)
-            case _:
-              print(
-                f"Found unexpected qualifier: {measure["qualifier"]}, for level measurement"
-              )
-              continue
-        case _:
-          print(
-            f"Found unexpected measurement: {measure["parameter"]}, for station: {self.station_reference}"
-          )
+      if measure["parameter"] == "level":
+        # the level parameter can come from different types of measurements
+        # need to use the qualifier to distinguish between them 
+         match measure_from_string(measure["qualifier"]):
+          case err.Ok(ty):
+            self.availabe_measures.append(ty)
+          case err.Err(error):
+            print(error.why())
+            print(f"Could not convert \"{measure["qualifier"]}\" into Measure enum type")       
+      else:
+        # Otherwise the parameter can be used to determine the measurement type
+        match measure_from_string(measure["parameter"]):
+          case err.Ok(ty):
+            self.availabe_measures.append(ty)
+          case err.Err(error):
+            print(error.why())
+            print(f"Could not convert \"{measure["parameter"]}\" into Measure enum type")
     return err.Ok(0)
 
 

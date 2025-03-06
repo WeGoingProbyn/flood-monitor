@@ -1,6 +1,6 @@
 # Flood Monitoring
 
-This project is an interactive web application built with Streamlit that lets users monitor flood-related data by selecting a river, town, and station. It queries the Environment Agency's flood-monitoring API to fetch data over the past 24 hours, and displays the results using charts and data tables.
+An interactive web application built with Streamlit that lets users monitor flood-related data by selecting a river, town, and station. It queries the Environment Agency's flood-monitoring API to fetch data over the past 24 hours, and displays the results using charts and data tables.
 
 ## Features
 
@@ -17,6 +17,12 @@ This project is an interactive web application built with Streamlit that lets us
 - **Pandas:** For data manipulation and constructing data frames.
 
 ## Usage
-- **Running the app:** Provided shell and batch scripts will setup virtual environment and install requirements if needed then run the app.
+- **Running the app:** Provided shell and batch scripts will setup virtual environment and install requirements if needed, the app will then be run.
+
+```bash
+sh run.sh
+run.bat
+```
+
 - Tested on Fedora 41 linux and windows 10.
 

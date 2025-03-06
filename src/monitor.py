@@ -79,19 +79,28 @@ class Monitor:
 
     # Api has rejected our request
     if response.status_code != 200:
-      return err.Err(err.MonitorError.ApiReject)
+      return err.Err(
+        err.MonitorError.ApiReject, 
+        "API did not return OK status code (200)"
+      )
     
     data = response.json()
     
     # Return structure of request is not consistent with assumptions
     if "items" not in data:
-      return err.Err(err.MonitorError.BadReturn)
+      return err.Err(
+        err.MonitorError.BadReturn,
+        "Returned json structure did not contain an items key"
+      )
     else:
       df = pd.DataFrame.from_dict(data["items"])
 
       # Cannot identify stations without these columns
       if not {"riverName", "notation", "label", "town"}.issubset(df.columns.values):
-        return err.Err(err.MonitorError.BadReturn)
+        return err.Err(
+        err.MonitorError.BadReturn,
+        "Returned items structure did not contain necessary station identifiers"
+      )
 
       return err.Ok(df)
    

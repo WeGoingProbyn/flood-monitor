@@ -25,8 +25,6 @@ class Ok(Generic[T]):
 @dataclass
 class Err(Generic[T]):
   error: MonitorError
+  src: str
 
 Result = Union[Ok[T], Err[T]]
-
-def test() -> Result:
-  return Err(MonitorError.BadReturn)

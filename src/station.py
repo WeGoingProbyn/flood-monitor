@@ -45,7 +45,10 @@ def measure_from_string(ty: str) -> err.Result:
     case "groundwater":
       return err.Ok(Measure.Groundwater)
     case _:
-      return err.Err(err.MonitorError.BadStringToEnum)
+      return err.Err(
+        err.MonitorError.BadStringToEnum,
+        "Could not convert string to measurement enum"
+      )
 
 class Station:
   """
@@ -87,13 +90,16 @@ class Station:
     # station there is no need to crash the server, just log
     # the failure and allow user to try a different station
     match self.find_available_measures(base_url):
-      case err.Err(error):
+      case err.Err(error, src):
         print(error.why())
         print(
-          f"Could not find the available measurements for station: {self.station_reference}"
+          f"Could not find the available measurements for station: {self.station_reference}" +
+          f"With source: {src}"
         )
       case err.Ok(_):
-        print(f"Successfully collected measurement types for station: {self.station_reference}")
+        print(
+          f"Successfully collected measurement types for station: {self.station_reference}"
+        )
 
   def find_available_measures(self, base_url: str) -> err.Result:
     """
@@ -120,13 +126,25 @@ class Station:
 
     # Request failed when != 200
     if response.status_code != 200:
-      return err.Err(err.MonitorError.ApiReject)
+      return err.Err(
+        err.MonitorError.ApiReject,
+        f"API did not return status 200 when requesting "+
+        f"available measures for station: {self.station_reference}"
+      )
 
     data = response.json()
     if "items" not in data:
-      return err.Err(err.MonitorError.BadReturn)
+      return err.Err(
+        err.MonitorError.BadReturn,
+        f"API did not return json structure with items " +
+        f"key when requesting available measures for station {self.station_reference}"
+      )
     elif "measures" not in data["items"]:
-      return err.Err(err.MonitorError.BadReturn)
+      return err.Err(
+        err.MonitorError.BadReturn,
+        f"API did not return items json structure with measures " +
+        f"key when requesting available measures for station {self.station_reference}"
+      )
 
     # If there is only 1 measurement a dict is returned
     # otherwise an array is used, need to add the dict to
@@ -155,7 +173,8 @@ class Station:
         # need to use the qualifier to distinguish between them 
          match measure_from_string(measure["qualifier"]):
           case err.Ok(ty):
-            self.availabe_measures.append((ty, units))
+            if (ty, units) not in self.availabe_measures:
+              self.availabe_measures.append((ty, units))
           case err.Err(error):
             print(error.why())
             print(f"Could not convert \"{measure["qualifier"]}\" into Measure enum type")       
@@ -163,10 +182,14 @@ class Station:
         # Otherwise the parameter can be used to determine the measurement type
         match measure_from_string(measure["parameter"]):
           case err.Ok(ty):
-            self.availabe_measures.append((ty, units))
+            if (ty, units) not in self.availabe_measures:
+              self.availabe_measures.append((ty, units))
           case err.Err(error):
             print(error.why())
             print(f"Could not convert \"{measure["parameter"]}\" into Measure enum type")
+    
+    # Some returns provide duplicate measures
+    # self.availabe_measures = list(dict.fromkeys(self.availabe_measures))
     return err.Ok(0)
 
 
@@ -208,15 +231,29 @@ class Station:
     response = requests.get(f"{base_url}/id/stations/{self.station_reference}/readings{ext}")
 
     if response.status_code != 200:
-      return err.Err(err.MonitorError.ApiReject)
+      return err.Err(
+        err.MonitorError.ApiReject,
+        f"API did not return status code 200 when requesting " +
+        f"measurement: {measure.to_string()} for station: {self.station_reference}"
+      )
 
     data = response.json()
     if "items" not in data:
-      return err.Err(err.MonitorError.BadReturn)
+      print(f"item key not found for measure: {measure.to_string} and station: {self.station_reference}")
+      return err.Err(
+        err.MonitorError.BadReturn,
+        f"API did not return json structure with items key for " +
+        f"measure: {measure.to_string()} and station: {self.station_reference}"
+      )
 
     df = pd.DataFrame.from_dict(data["items"])
     if not {"dateTime", "value"}.issubset(df.columns.values):
-      return err.Err(err.MonitorError.BadReturn)
+      print(f"dateTime, or value keys not found for measure: {measure.to_string()} and station: {self.station_reference}")
+      return err.Err(
+        err.MonitorError.BadReturn,
+        f"API did not return items json structure with dateTime or value key for " +
+        f"measure: {measure.to_string()} and station: {self.station_reference}"
+      )
     else:
       return err.Ok(df[["dateTime", "value"]])
 

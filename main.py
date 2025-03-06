@@ -37,14 +37,16 @@ def main():
     print("you nonce")
   elif len(sta_ref) == 1:
     station = sta.Station(monitor.base_url, sta_ref.iloc[0])
-    print(station.availabe_measures)
-
     for (measure, unit) in station.availabe_measures:
       col1, col2 = st.columns([3,1], vertical_alignment="top", border=True)
       match station.request_measure(measure, monitor.start_time, monitor.base_url):
-        case err.Err(error):
-          print(error.why())
-          st.write("Something went wrong when querying data for this station!")
+        case err.Err(error, src):
+          print(error.why() + " " + src)
+          with col1:
+            st.write(
+              f"Something went wrong when querying {measure.to_string()} for this station " +
+              f"with error: {error.why()} and source: {src}"
+            )
         case err.Ok(df):
           with col1:
             st.line_chart(

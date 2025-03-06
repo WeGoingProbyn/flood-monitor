@@ -1,6 +1,6 @@
 @echo off
 
-REM Check if Python version is at least 3.7
+REM Check if Python version is at least 3.10
 python -c "import sys; assert sys.version_info >= (3,10), 'Python 3.10 or higher is required'" 
 if %errorlevel% neq 0 (
   echo ERROR: Python 3.10 or higher is required.

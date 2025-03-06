@@ -4,6 +4,10 @@ from enum import Enum
 import src.errors as err
 
 class Measure(Enum):
+  """
+  An enum representing the possible measurements
+  which can be obtained when querying the flood-management API
+  """
   Flow = 0
   Wind = 1
   Tidal = 2
@@ -13,6 +17,14 @@ class Measure(Enum):
   Temperature = 6
 
   def to_string(self) -> str:
+    """
+    A function which converts this enum into its corresponding
+    string representation given by the flood-management API
+
+    Returns
+    -------
+    The string version of this Measure enum
+    """
     match self:
       case Measure.Flow:
         return "flow"
@@ -30,6 +42,23 @@ class Measure(Enum):
         return "temperature"
 
 def measure_from_string(ty: str) -> err.Result:
+  """
+  A function which converts a string into its corresponding
+  Measure enum representation
+
+  Parameters
+  ----------
+  ty: str
+    The string representation of the measure being converted into
+    analogous Measure enum
+
+  Returns
+  -------
+  BadStringToEnum if the string passed into this function does not
+  correspond to an analogous Measure in the enum class
+
+  Ok(Measure) if the string is converted correctly
+  """
   string = ty.lower()
   match string:
     case "flow":
@@ -65,6 +94,13 @@ class Station:
 
   Methods
   -------
+  find_available_measures(self, base_url: str) -> Result
+    Queries the flood-monitoring API to determine which measurements
+    can be expected when retrieving data from the requested station
+
+  request_measures(self, measure: Measure, start_time: str, base_url: str) -> Result
+    Queries the flood-monitoring API for the requested measure from the instance
+    which the request is made and the start time passed into the function
   """
   def __init__(self, base_url: str, reference: str) -> None:
     """
@@ -195,6 +231,9 @@ class Station:
 
   def request_measure(self, measure: Measure, start_time: str, base_url: str) -> err.Result:
     """
+    A method which requests a measure from the flood-monitoring API
+    for this station given a passed starting time
+
     Parameters
     ----------
     measure: Measure
@@ -209,8 +248,16 @@ class Station:
 
     Returns
     -------
+    ApiReject if the status code returned on the HTTP request was not 200
+    BadReturn if the json structure returned by the API call does not contain items key
+    BadReturn if the json structure inside the items dict does not contain "dateTime" and
+    "value" keys
 
+    Ok(pandas.DataFrame) if the returned structure contains necessary keys and
+    the dataframe is constructed correctly
     """
+
+    # Determine the extension required to request from API
     ext = None
     match measure:
       case Measure.Flow:
@@ -229,7 +276,6 @@ class Station:
         ext = f"?parameter=temperature&since={start_time}"
 
     response = requests.get(f"{base_url}/id/stations/{self.station_reference}/readings{ext}")
-
     if response.status_code != 200:
       return err.Err(
         err.MonitorError.ApiReject,

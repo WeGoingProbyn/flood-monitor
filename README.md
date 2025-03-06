@@ -1,11 +1,11 @@
 # Flood Monitoring
 
-This project is an interactive web application built with Streamlit that lets users monitor flood-related data by selecting a river, town, and station. It queries the Environment Agency's flood-monitoring API to fetch data on various measurements—such as flow, wind, tidal level, stage level, and more—over the past 24 hours, and displays the results using charts and data tables.
+This project is an interactive web application built with Streamlit that lets users monitor flood-related data by selecting a river, town, and station. It queries the Environment Agency's flood-monitoring API to fetch data over the past 24 hours, and displays the results using charts and data tables.
 
 ## Features
 
 - **Interactive UI:** Select a river, town, and station using dropdown menus.
-- **Real-time Data:** Retrieves current flood monitoring measurements from an external API.
+- **Real-time Data:** Retrieves current flood monitoring measurements from the UK's flood-monitoring API.
 - **Data Visualization:** Displays measurement data with line charts and data tables.
 - **Rust Inspired Error Handling:** Uses an error module inspired by rust error handling to gracefully handle API errors and unexpected responses.
 
@@ -18,4 +18,5 @@ This project is an interactive web application built with Streamlit that lets us
 
 ## Usage
 - **Running the app:** Provided shell and batch scripts will setup virtual environment and install requirements if needed then run the app.
+- Tested on Fedora 41 linux and windows 10.
 

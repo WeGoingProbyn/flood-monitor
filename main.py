@@ -12,21 +12,21 @@ def main():
   col1, col2, col3 = st.columns(3)
   with col1:
     river_name = st.selectbox(
-      "Choose a river!",
+      "Choose a river:",
       monitor.unique_stations["riverName"].unique(),
     )
   cond_river = monitor.unique_stations["riverName"] == river_name
 
   with col2:
     town_name = st.selectbox(
-      "Choose a town!",
+      "Choose a town:",
       monitor.unique_stations.loc[cond_river, "town"].unique(),
     )
   cond_town = monitor.unique_stations["town"] == town_name
 
   with col3:
     station_ref = st.selectbox(
-      "Choose a station!",
+      "Choose a station:",
       monitor.unique_stations.loc[cond_river & cond_town, "label"],
     )
 
@@ -43,9 +43,11 @@ def main():
         case err.Err(error, src):
           print(error.why() + " " + src)
           with col1:
-            st.write(
+
+            st.warning(
               f"Something went wrong when querying {measure.to_string()} for this station " +
-              f"with error: {error.why()} and source: {src}"
+              f"with error: {error.why()} and source: {src}",
+              icon="⚠️"
             )
         case err.Ok(df):
           with col1:

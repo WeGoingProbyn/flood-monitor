@@ -173,7 +173,7 @@ class Station:
         # need to use the qualifier to distinguish between them 
          match measure_from_string(measure["qualifier"]):
           case err.Ok(ty):
-            if (ty, units) not in self.availabe_measures:
+            if not any(existing_ty == ty for existing_ty, _ in self.availabe_measures):
               self.availabe_measures.append((ty, units))
           case err.Err(error):
             print(error.why())
@@ -182,7 +182,7 @@ class Station:
         # Otherwise the parameter can be used to determine the measurement type
         match measure_from_string(measure["parameter"]):
           case err.Ok(ty):
-            if (ty, units) not in self.availabe_measures:
+            if not any(existing_ty == ty for existing_ty, _ in self.availabe_measures):
               self.availabe_measures.append((ty, units))
           case err.Err(error):
             print(error.why())

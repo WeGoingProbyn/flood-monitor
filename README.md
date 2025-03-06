@@ -19,8 +19,12 @@ An interactive web application built with Streamlit that lets users monitor floo
 ## Usage
 - **Running the app:** Provided shell and batch scripts will setup virtual environment and install requirements if needed, the app will then be run.
 
+**Linux:**
 ```bash
 sh run.sh
+```
+**Windows**
+```bash
 run.bat
 ```
 

@@ -143,7 +143,12 @@ class Station:
         continue
 
       # Extract the unit type
-      units = measure["unit"].rsplit("#", 1)[-1]
+      units = None
+      if not "unit" in measure:
+        units = "unkown"
+      else:
+        units = measure["unit"].rsplit("#", 1)[-1]
+
       # Find the type of measurement being given
       if measure["parameter"] == "level":
         # the level parameter can come from different types of measurements
@@ -210,6 +215,9 @@ class Station:
       return err.Err(err.MonitorError.BadReturn)
 
     df = pd.DataFrame.from_dict(data["items"])
-    return err.Ok(df[["dateTime", "value"]])
+    if not {"dateTime", "value"}.issubset(df.columns.values):
+      return err.Err(err.MonitorError.BadReturn)
+    else:
+      return err.Ok(df[["dateTime", "value"]])
 
 

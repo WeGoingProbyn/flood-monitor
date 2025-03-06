@@ -29,6 +29,10 @@ class Monitor:
     The dataframe containing only the subset of columns 
     in all_active_stations which identify each station
 
+  good_construct: bool
+    boolean used to check if an error occured during object
+    construction
+
   Methods
   -------
   get_active_stations() -> Result

@@ -239,7 +239,10 @@ class Station:
 
     data = response.json()
     if "items" not in data:
-      print(f"item key not found for measure: {measure.to_string} and station: {self.station_reference}")
+      print(
+        f"item key not found for measure: {measure.to_string} " + 
+        f"and station: {self.station_reference}"
+      )
       return err.Err(
         err.MonitorError.BadReturn,
         f"API did not return json structure with items key for " +
@@ -248,7 +251,10 @@ class Station:
 
     df = pd.DataFrame.from_dict(data["items"])
     if not {"dateTime", "value"}.issubset(df.columns.values):
-      print(f"dateTime, or value keys not found for measure: {measure.to_string()} and station: {self.station_reference}")
+      print(
+        f"dateTime, or value keys not found for measure: " +
+        f"{measure.to_string()} and station: {self.station_reference}"
+      )
       return err.Err(
         err.MonitorError.BadReturn,
         f"API did not return items json structure with dateTime or value key for " +

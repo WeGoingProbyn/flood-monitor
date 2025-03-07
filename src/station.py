@@ -97,6 +97,10 @@ class Station:
   available_measires: [(Measure, str)]
     The array of available (measurement, units) types when querying measurements this station
 
+  good_construct: bool
+    boolean used to check if an error occured during object
+    construction
+
   Methods
   -------
   find_available_measures(self, base_url: str) -> Result
@@ -137,10 +141,12 @@ class Station:
           f"Could not find the available measurements for station: {self.station_reference}" +
           f"With source: {src}"
         )
+        self.good_construction = False
       case err.Ok(_):
         print(
           f"Successfully collected measurement types for station: {self.station_reference}"
         )
+        self.good_construction = True
 
   def find_available_measures(self, base_url: str) -> err.Result:
     """

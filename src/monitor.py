@@ -52,8 +52,10 @@ class Monitor:
     match self.get_active_stations():
       case err.Err(error):
         print(error.why())
-        raise AssertionError("Could not retrieve unique stations on startup, is the API down?")
+        print("Is the API down?")
+        self.good_construction = False
       case err.Ok(df):
+        self.good_construction = True
         self.all_active_stations = df
 
         # To allow picking of a station through its river, town, and label

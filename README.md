@@ -1,6 +1,6 @@
 # Flood Monitoring
 
-An interactive web application built with Streamlit that lets users monitor flood-related data by selecting a river, town, and station. It queries the Environment Agency's flood-monitoring API to fetch data over the past 24 hours, and displays the results using charts and data tables.
+An interactive web application built with Streamlit that lets users monitor flood-related data by selecting a river, town, and station. It queries the UK's Environment Agency's flood-monitoring API to fetch data over the past 24 hours, and displays the results using charts and data tables.
 
 ## Features
 

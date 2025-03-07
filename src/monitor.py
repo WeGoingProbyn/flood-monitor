@@ -96,13 +96,22 @@ class Monitor:
       df = pd.DataFrame.from_dict(data["items"])
 
       # Cannot identify stations without these columns
-      if not {"riverName", "notation", "label", "town"}.issubset(df.columns.values):
+      needed_cols = ["riverName", "notation", "label", "town"]
+      if not set(needed_cols).issubset(df.columns.values):
         return err.Err(
         err.MonitorError.BadReturn,
         "Returned items structure did not contain necessary station identifiers"
       )
-
-      return err.Ok(df)
+      else:
+        # make sure that all the columns being used to identify a station
+        # actually exist and don't contain any nan or invalid values,
+        # although the identifier might not be given, the data still exists
+        # and can be determined from the other identifiers assuming no more
+        # than 1 set of identifiers (river name, town, station name) are not nan.
+        # if there is more than 1, a warning is given to the user and the first
+        # station returned from the list is taken and will be displayed
+        df[needed_cols] = df[needed_cols].fillna("unknown")
+        return err.Ok(df)
    
   def set_time_range(self) -> None:
     """

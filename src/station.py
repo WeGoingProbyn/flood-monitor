@@ -12,9 +12,10 @@ class Measure(Enum):
   Wind = 1
   Tidal = 2
   Stage = 3
-  Downstage = 4
-  Groundwater = 5
-  Temperature = 6
+  Logged = 4
+  Downstage = 5
+  Groundwater = 6
+  Temperature = 7
 
   def to_string(self) -> str:
     """
@@ -33,11 +34,13 @@ class Measure(Enum):
       case Measure.Tidal:
         return "tidal level"
       case Measure.Stage:
-        return "stage level"
+        return "stage"
+      case Measure.Logged:
+        return "logged"
       case Measure.Downstage:
-        return "downstream stage level"
+        return "downstream stage"
       case Measure.Groundwater:
-        return "groundwater level"
+        return "groundwater"
       case Measure.Temperature:
         return "temperature"
 
@@ -69,6 +72,8 @@ def measure_from_string(ty: str) -> err.Result:
       return err.Ok(Measure.Tidal)
     case "stage":
       return err.Ok(Measure.Stage)
+    case "logged":
+      return err.Ok(Measure.Logged)
     case "downstream stage":
       return err.Ok(Measure.Downstage)
     case "groundwater":
@@ -260,22 +265,13 @@ class Station:
     # Determine the extension required to request from API
     ext = None
     match measure:
-      case Measure.Flow:
-        ext = f"?parameter=flow&since={start_time}"
-      case Measure.Wind:
-        ext = f"?parameter=wind&since={start_time}"
-      case Measure.Tidal:
-        ext = f"?parameter=level&qualifier=Tidal Level&since={start_time}"
-      case Measure.Stage:
-        ext = f"?parameter=level&qualifier=Stage&since={start_time}"
-      case Measure.Downstage:
-        ext = f"?parameter=level&qualifier=Downstream Stage&since={start_time}"
-      case Measure.Groundwater:
-        ext = f"?parameter=level&qualifier=Groundwater&since={start_time}"
-      case Measure.Temperature:
-        ext = f"?parameter=temperature&since={start_time}"
+      case Measure.Flow | Measure.Wind | Measure.Temperature:
+        ext = f"?parameter={measure.to_string()}"
+      case Measure.Tidal | Measure.Stage | Measure.Downstage | Measure.Groundwater | Measure.Logged:
+        ext = f"?parameter=level&qualifier={measure.to_string().capitalize()}"
 
-    response = requests.get(f"{base_url}/id/stations/{self.station_reference}/readings{ext}")
+    # request data
+    response = requests.get(f"{base_url}/id/stations/{self.station_reference}/readings{ext}&since={start_time}")
     if response.status_code != 200:
       return err.Err(
         err.MonitorError.ApiReject,
@@ -295,6 +291,7 @@ class Station:
         f"measure: {measure.to_string()} and station: {self.station_reference}"
       )
 
+    # build dataframe from json response
     df = pd.DataFrame.from_dict(data["items"])
     if not {"dateTime", "value"}.issubset(df.columns.values):
       print(
@@ -307,6 +304,7 @@ class Station:
         f"measure: {measure.to_string()} and station: {self.station_reference}"
       )
     else:
+      df["dateTime"] = pd.to_datetime(df["dateTime"])
       return err.Ok(df[["dateTime", "value"]])
 
 

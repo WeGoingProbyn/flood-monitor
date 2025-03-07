@@ -30,3 +30,5 @@ run.bat
 
 - Tested on Fedora 41 linux and windows 10.
 
+## Known issues
+- When trying to terminate the process from console on windows after closing the tab in your browser, CTRL+C will take a long time to kill the process, this can be fixed by re-opening the tab and retrying the kill signal. see: https://discuss.streamlit.io/t/cant-stop-streamlit-app-using-ctrl-c-if-the-app-has-been-closed-in-the-browser/38738

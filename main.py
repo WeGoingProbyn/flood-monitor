@@ -5,7 +5,7 @@ import src.monitor as mon
 
 st.set_page_config(layout="wide")
 
-def main():
+def main() -> None:
   # Collect all unique stations
   monitor = mon.Monitor()
 

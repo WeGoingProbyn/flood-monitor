@@ -39,16 +39,16 @@ def main() -> None:
 
     with col3:
       # Finally, chose the station, should be unique choice by this stage
-      station_ref = st.selectbox(
+      station_name = st.selectbox(
         "Choose a station:",
         sorted(monitor.unique_stations.loc[cond_river & cond_town, "label"]),
       )
 
-    cond_ref = monitor.unique_stations["label"] == station_ref
-    sta_ref = monitor.unique_stations.loc[cond_river & cond_town & cond_ref, "notation"]
+    cond_ref = monitor.unique_stations["label"] == station_name
+    station_ref = monitor.unique_stations.loc[cond_river & cond_town & cond_ref, "notation"]
 
     # A unique reference wasnt found for this station
-    if len(sta_ref) == 0:
+    if len(station_ref) == 0:
       st.warning(
         f"Could not find the unique reference for the station being requested",
         icon="⚠️"
@@ -56,7 +56,7 @@ def main() -> None:
 
     else:
       # A station has more than 1 unique reference
-      if len(sta_ref) > 1:
+      if len(station_ref) > 1:
         st.warning(
           "Found multiple references for the station being requested, " +
           "using the first reference found in the array",
@@ -64,7 +64,7 @@ def main() -> None:
         )
 
       # always take the first unique station reference
-      station = sta.Station(monitor.base_url, sta_ref.iloc[0])
+      station = sta.Station(monitor.base_url, station_ref.iloc[0])
 
       # if an error occured in the station constructor
       if not station.good_construction:

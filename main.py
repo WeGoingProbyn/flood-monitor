@@ -97,7 +97,7 @@ def main():
                   data=df, 
                   x="dateTime", 
                   y="value", 
-                  x_label="date and time",
+                  x_label=f"date and time ({monitor.start_time[:-10]} - {monitor.end_time[:-10]})",
                   y_label=f"{measure.to_string()} ({unit})"
                 )
               with col2:

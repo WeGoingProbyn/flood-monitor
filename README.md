@@ -21,7 +21,8 @@ An interactive web application built with Streamlit that lets users monitor floo
 
 **Linux:**
 ```bash
-sh run.sh
+chmod +x ./run.sh
+./run.sh
 ```
 **Windows**
 ```bash
